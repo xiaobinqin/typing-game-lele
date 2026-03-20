@@ -4,7 +4,7 @@
 
 ## 下载使用（macOS）
 
-前往 [Releases](https://github.com/xiaobinqin/typing-game-lele/releases) 下载最新版本的 `打字大挑战-乐乐-macOS-vX.X.zip`，解压后双击 `.app` 即可运行。
+前往 [Releases](https://github.com/xiaobinqin/typing-game-lele/releases) 下载最新版本的 `typing-game-lele-macOS-vX.X.zip`，解压后双击 `.app` 即可运行。
 
 > 首次打开时若系统提示"无法验证开发者"，请：
 > 系统设置 → 隐私与安全性 → 仍要打开
