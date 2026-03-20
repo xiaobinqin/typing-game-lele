@@ -31,9 +31,12 @@ Desktop.ini
 *.swp
 *.swo
 
-# PyInstaller 中间产物（build/dist 不入库，spec 和 releases/ 保留）
+# PyInstaller 中间产物（build/dist 不入库，spec 保留）
 build/
 dist/
+
+# 发布包（通过 GitHub Releases 托管，不入库）
+releases/
 
 # 日志
 *.log
