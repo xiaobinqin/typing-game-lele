@@ -1,6 +1,15 @@
 import os
+import sys
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+def _get_base_dir():
+    """兼容 PyInstaller 打包后的路径"""
+    if getattr(sys, "frozen", False):
+        return sys._MEIPASS
+    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+BASE_DIR = _get_base_dir()
 
 # 屏幕尺寸
 SCREEN_WIDTH = 1024

@@ -5,8 +5,6 @@ __pycache__/
 *.so
 *.egg
 *.egg-info/
-dist/
-build/
 .eggs/
 
 # 虚拟环境
@@ -33,10 +31,9 @@ Desktop.ini
 *.swp
 *.swo
 
-# PyInstaller 打包产物
-*.spec
-dist/
+# PyInstaller 中间产物（build/dist 不入库，spec 和 releases/ 保留）
 build/
+dist/
 
 # 日志
 *.log

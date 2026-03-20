@@ -2,6 +2,13 @@
 
 一款面向小学生（1-6年级）的跨平台键盘打字游戏，帮助小学生学习拼音和汉字。内容与人教版小学语文教材同步。
 
+## 下载使用（macOS）
+
+前往 [Releases](https://github.com/xiaobinqin/typing-game-lele/releases) 下载最新版本的 `打字大挑战-乐乐-macOS-vX.X.zip`，解压后双击 `.app` 即可运行。
+
+> 首次打开时若系统提示"无法验证开发者"，请：
+> 系统设置 → 隐私与安全性 → 仍要打开
+
 ## 功能特色
 
 - **4种游戏模式**：消消乐、闯关模式、竞速模式、练习模式
@@ -12,12 +19,7 @@
 - **本地学习记录**：自动保存每次游戏结果
 - **竞速排行榜**：本地 Top 10 排行
 
-## 运行环境
-
-- Python 3.9+
-- Windows / macOS
-
-## 快速开始
+## 从源码运行
 
 ```bash
 # 1. 创建虚拟环境
@@ -29,11 +31,20 @@ source venv/bin/activate
 # Windows:
 venv\Scripts\activate
 
-# 3. 安装依赖（国内镜像）
+# 3. 安装依赖
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # 4. 启动游戏
 python main.py
+```
+
+## 打包为 macOS .app
+
+```bash
+source venv/bin/activate
+pip install pyinstaller -i https://pypi.tuna.tsinghua.edu.cn/simple
+pyinstaller typing_game.spec --clean --noconfirm
+# 输出位于 dist/打字大挑战-乐乐.app
 ```
 
 ## 游戏操作
@@ -52,11 +63,12 @@ python main.py
 打字游戏/
 ├── main.py                    # 启动入口
 ├── requirements.txt           # 依赖清单
+├── typing_game.spec           # PyInstaller 打包配置
+├── releases/                  # 发布包（zip）
 ├── data/
 │   ├── phonics.json           # 拼音题库
 │   ├── characters.json        # 汉字题库（人教版1-6年级）
 │   └── words.json             # 词语题库
-├── saves/                     # 本地存档（运行时自动生成）
 └── src/
     ├── game.py                # 主游戏引擎
     ├── utils/                 # 工具模块

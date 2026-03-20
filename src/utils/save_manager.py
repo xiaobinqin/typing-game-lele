@@ -1,13 +1,23 @@
 import json
 import os
+import sys
 from datetime import datetime
-from src.utils.constants import SAVES_DIR
 
-_RECORD_FILE  = os.path.join(SAVES_DIR, "records.json")
-_LEADER_FILE  = os.path.join(SAVES_DIR, "leaderboard.json")
+
+def _get_saves_dir():
+    """打包环境下将存档写到用户主目录，避免写入只读的 _MEIPASS"""
+    if getattr(sys, "frozen", False):
+        return os.path.join(os.path.expanduser("~"), ".typing_game_lele", "saves")
+    from src.utils.constants import SAVES_DIR
+    return SAVES_DIR
+
+
+_SAVES_DIR    = _get_saves_dir()
+_RECORD_FILE  = os.path.join(_SAVES_DIR, "records.json")
+_LEADER_FILE  = os.path.join(_SAVES_DIR, "leaderboard.json")
 
 def _ensure_dir():
-    os.makedirs(SAVES_DIR, exist_ok=True)
+    os.makedirs(_SAVES_DIR, exist_ok=True)
 
 def _load_json(path, default):
     if os.path.exists(path):
