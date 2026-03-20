@@ -1,0 +1,128 @@
+{
+  "grade1": {
+    "name": "一年级词语",
+    "grade": 1,
+    "items": [
+      {"word": "大山", "pinyin": "da shan"},
+      {"word": "小鸟", "pinyin": "xiao niao"},
+      {"word": "日月", "pinyin": "ri yue"},
+      {"word": "水火", "pinyin": "shui huo"},
+      {"word": "爸爸", "pinyin": "ba ba"},
+      {"word": "妈妈", "pinyin": "ma ma"},
+      {"word": "春天", "pinyin": "chun tian"},
+      {"word": "夏天", "pinyin": "xia tian"},
+      {"word": "秋天", "pinyin": "qiu tian"},
+      {"word": "冬天", "pinyin": "dong tian"},
+      {"word": "上下", "pinyin": "shang xia"},
+      {"word": "大小", "pinyin": "da xiao"},
+      {"word": "国家", "pinyin": "guo jia"},
+      {"word": "牛羊", "pinyin": "niu yang"},
+      {"word": "花草", "pinyin": "hua cao"}
+    ]
+  },
+  "grade2": {
+    "name": "二年级词语",
+    "grade": 2,
+    "items": [
+      {"word": "老师", "pinyin": "lao shi"},
+      {"word": "同学", "pinyin": "tong xue"},
+      {"word": "书本", "pinyin": "shu ben"},
+      {"word": "铅笔", "pinyin": "qian bi"},
+      {"word": "桌椅", "pinyin": "zhuo yi"},
+      {"word": "红色", "pinyin": "hong se"},
+      {"word": "蓝色", "pinyin": "lan se"},
+      {"word": "绿色", "pinyin": "lv se"},
+      {"word": "黄色", "pinyin": "huang se"},
+      {"word": "晴天", "pinyin": "qing tian"},
+      {"word": "下雨", "pinyin": "xia yu"},
+      {"word": "打雷", "pinyin": "da lei"},
+      {"word": "彩虹", "pinyin": "cai hong"},
+      {"word": "窗门", "pinyin": "chuang men"},
+      {"word": "学习", "pinyin": "xue xi"}
+    ]
+  },
+  "grade3": {
+    "name": "三年级词语",
+    "grade": 3,
+    "items": [
+      {"word": "蜻蜓", "pinyin": "qing ting"},
+      {"word": "蝴蝶", "pinyin": "hu die"},
+      {"word": "蜜蜂", "pinyin": "mi feng"},
+      {"word": "燕子", "pinyin": "yan zi"},
+      {"word": "荷花", "pinyin": "he hua"},
+      {"word": "菊花", "pinyin": "ju hua"},
+      {"word": "梅花", "pinyin": "mei hua"},
+      {"word": "松树", "pinyin": "song shu"},
+      {"word": "柳树", "pinyin": "liu shu"},
+      {"word": "苹果", "pinyin": "ping guo"},
+      {"word": "葡萄", "pinyin": "pu tao"},
+      {"word": "橘子", "pinyin": "ju zi"},
+      {"word": "勤俭", "pinyin": "qin jian"},
+      {"word": "强弱", "pinyin": "qiang ruo"},
+      {"word": "安静", "pinyin": "an jing"}
+    ]
+  },
+  "grade4": {
+    "name": "四年级词语",
+    "grade": 4,
+    "items": [
+      {"word": "山峰", "pinyin": "shan feng"},
+      {"word": "瀑布", "pinyin": "pu bu"},
+      {"word": "彩虹", "pinyin": "cai hong"},
+      {"word": "粮食", "pinyin": "liang shi"},
+      {"word": "水稻", "pinyin": "shui dao"},
+      {"word": "腾空", "pinyin": "teng kong"},
+      {"word": "跃起", "pinyin": "yue qi"},
+      {"word": "归来", "pinyin": "gui lai"},
+      {"word": "遥远", "pinyin": "yao yuan"},
+      {"word": "庐山", "pinyin": "lu shan"},
+      {"word": "楼阁", "pinyin": "lou ge"},
+      {"word": "渡过", "pinyin": "du guo"},
+      {"word": "芦苇", "pinyin": "lu wei"},
+      {"word": "崭新", "pinyin": "zhan xin"},
+      {"word": "临近", "pinyin": "lin jin"}
+    ]
+  },
+  "grade5": {
+    "name": "五年级词语",
+    "grade": 5,
+    "items": [
+      {"word": "驰骋", "pinyin": "chi cheng"},
+      {"word": "翠绿", "pinyin": "cui lv"},
+      {"word": "礼貌", "pinyin": "li mao"},
+      {"word": "拘束", "pinyin": "ju shu"},
+      {"word": "摔跤", "pinyin": "shuai jiao"},
+      {"word": "盼望", "pinyin": "pan wang"},
+      {"word": "眷恋", "pinyin": "juan lian"},
+      {"word": "境界", "pinyin": "jing jie"},
+      {"word": "陈旧", "pinyin": "chen jiu"},
+      {"word": "渲染", "pinyin": "xuan ran"},
+      {"word": "勾勒", "pinyin": "gou le"},
+      {"word": "迂回", "pinyin": "yu hui"},
+      {"word": "陪伴", "pinyin": "pei ban"},
+      {"word": "苦涩", "pinyin": "ku se"},
+      {"word": "草原", "pinyin": "cao yuan"}
+    ]
+  },
+  "grade6": {
+    "name": "六年级词语",
+    "grade": 6,
+    "items": [
+      {"word": "玻璃", "pinyin": "bo li"},
+      {"word": "凌云", "pinyin": "ling yun"},
+      {"word": "幽静", "pinyin": "you jing"},
+      {"word": "典雅", "pinyin": "dian ya"},
+      {"word": "恒心", "pinyin": "heng xin"},
+      {"word": "毅力", "pinyin": "yi li"},
+      {"word": "铸造", "pinyin": "zhu zao"},
+      {"word": "灵魂", "pinyin": "ling hun"},
+      {"word": "贡献", "pinyin": "gong xian"},
+      {"word": "忠诚", "pinyin": "zhong cheng"},
+      {"word": "廉洁", "pinyin": "lian jie"},
+      {"word": "惭愧", "pinyin": "can kui"},
+      {"word": "谦虚", "pinyin": "qian xu"},
+      {"word": "谨慎", "pinyin": "jin shen"},
+      {"word": "誓言", "pinyin": "shi yan"}
+    ]
+  }
+}

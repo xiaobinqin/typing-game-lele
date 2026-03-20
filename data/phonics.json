@@ -1,0 +1,32 @@
+{
+  "initials": {
+    "name": "声母",
+    "items": ["b", "p", "m", "f", "d", "t", "n", "l", "g", "k", "h", "j", "q", "x", "zh", "ch", "sh", "r", "z", "c", "s", "y", "w"]
+  },
+  "finals": {
+    "name": "韵母",
+    "items": ["a", "o", "e", "i", "u", "v", "ai", "ei", "ui", "ao", "ou", "iu", "ie", "ve", "er", "an", "en", "in", "un", "vn", "ang", "eng", "ing", "ong"]
+  },
+  "whole_syllables": {
+    "name": "整体认读音节",
+    "items": ["zhi", "chi", "shi", "ri", "zi", "ci", "si", "yi", "wu", "yu", "ye", "yue", "yuan", "yin", "yun", "ying"]
+  },
+  "syllables": {
+    "name": "常用音节",
+    "items": [
+      "ba", "pa", "ma", "fa", "da", "ta", "na", "la", "ga", "ka", "ha",
+      "bi", "pi", "mi", "di", "ti", "ni", "li",
+      "ji", "qi", "xi",
+      "bo", "po", "mo", "fo",
+      "de", "te", "ne", "le", "ge", "ke", "he",
+      "bei", "pei", "mei", "fei", "dei", "nei", "lei", "gei", "hei",
+      "bai", "pai", "mai", "dai", "tai", "nai", "lai", "gai", "kai", "hai",
+      "bao", "pao", "mao", "dao", "tao", "nao", "lao", "gao", "kao", "hao",
+      "ban", "pan", "man", "fan", "dan", "tan", "nan", "lan", "gan", "kan", "han",
+      "bin", "pin", "min", "din", "tin", "nin", "lin",
+      "ben", "pen", "men", "fen", "den", "nen", "gen", "ken", "hen",
+      "bing", "ping", "ming", "ding", "ting", "ning", "ling",
+      "bang", "pang", "mang", "fang", "dang", "tang", "nang", "lang", "gang", "kang", "hang"
+    ]
+  }
+}
