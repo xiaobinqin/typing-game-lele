@@ -62,7 +62,6 @@ SCENE_FALLING     = "falling"
 SCENE_CHALLENGE   = "challenge"
 SCENE_SPEED       = "speed"
 SCENE_PRACTICE    = "practice"
-SCENE_RESULT      = "result"
 SCENE_LEADERBOARD = "leaderboard"
 
 # 难度等级

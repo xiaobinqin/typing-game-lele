@@ -92,8 +92,8 @@ class LeaderboardScene:
             return
 
         rank_colors = [(255, 185, 0), (160, 168, 180), (200, 130, 60)]
-        for i, entry in enumerate(board[:8]):
-            ry = hy + 50 + i * 46
+        for i, entry in enumerate(board[:10]):
+            ry = hy + 50 + i * 44
             if i % 2 == 0:
                 stripe = pygame.Rect(table.x + 8, ry - 18, table.width - 16, 40)
                 pygame.draw.rect(surface, (248, 250, 254), stripe, border_radius=8)

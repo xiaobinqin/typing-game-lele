@@ -174,50 +174,56 @@ class ChallengeScene:
     def _draw_result(self, surface):
         draw_background_solid(surface, COLOR_BG_MAIN)
         has_wrong = bool(self.wrong_items)
-        card_h = 540 if has_wrong else 420
-        card = pygame.Rect(SCREEN_WIDTH // 2 - 310, 70, 620, card_h)
+        # 卡片需包裹所有内容（含底部按钮），底边固定在 y=714
+        card_top = 50
+        card_h = 664
+        card = pygame.Rect(SCREEN_WIDTH // 2 - 310, card_top, 620, card_h)
         draw_card(surface, card, bg=WHITE, radius=24, shadow=True)
 
         passed = self.stars > 0
         title_color = COLOR_SUCCESS if passed else COLOR_DANGER
         draw_text(surface, "恭喜通关！" if passed else "本次未通关",
-                  44, title_color, SCREEN_WIDTH // 2, 138, center=True, bold=True)
+                  44, title_color, SCREEN_WIDTH // 2, card_top + 70, center=True, bold=True)
 
         for i in range(3):
-            draw_star(surface, SCREEN_WIDTH // 2 - 60 + i * 60, 200,
+            draw_star(surface, SCREEN_WIDTH // 2 - 60 + i * 60, card_top + 128,
                       filled=(i < self.stars), size=26)
 
         total = len(self.pool)
         acc = round(self.correct / total * 100, 1) if total else 0
         draw_text(surface, f"{self.score}", 60, COLOR_PRIMARY,
-                  SCREEN_WIDTH // 2, 272, center=True, bold=True)
+                  SCREEN_WIDTH // 2, card_top + 198, center=True, bold=True)
         draw_text(surface, "分", 18, COLOR_TEXT_SUB,
-                  SCREEN_WIDTH // 2 + 50, 288)
+                  SCREEN_WIDTH // 2 + 50, card_top + 214)
         draw_text(surface, f"共 {total} 题  ·  正确 {self.correct} 题  ·  正确率 {acc}%",
-                  18, COLOR_TEXT_SUB, SCREEN_WIDTH // 2, 318, center=True)
+                  18, COLOR_TEXT_SUB, SCREEN_WIDTH // 2, card_top + 246, center=True)
 
         if has_wrong:
-            draw_divider(surface, card.x + 40, 346, card.right - 40, (235, 238, 248))
+            div_y = card_top + 272
+            draw_divider(surface, card.x + 40, div_y, card.right - 40, (235, 238, 248))
             wrong_n = len(self.wrong_items)
             draw_text(surface, f"错题回顾（共 {wrong_n} 题）",
-                      16, COLOR_DANGER, SCREEN_WIDTH // 2, 368, center=True, bold=True)
+                      16, COLOR_DANGER, SCREEN_WIDTH // 2, div_y + 22, center=True, bold=True)
 
-            # 可视区域，最多显示5行，支持滚动
+            # 可视区域 5 行，行高 28px，支持滚动
             visible = 5
+            row_h = 28
+            list_top = div_y + 42
             start = self.wrong_scroll
-            clip_rect = pygame.Rect(card.x + 10, 382, card.width - 20, visible * 26)
+            clip_rect = pygame.Rect(card.x + 10, list_top, card.width - 20, visible * row_h)
             surface.set_clip(clip_rect)
             for i, w in enumerate(self.wrong_items[start: start + visible]):
                 line = f"{w['display']}  →  正确：{w['answer']}    你答：{w['typed']}"
                 draw_text(surface, line, 15, COLOR_TEXT_SUB,
-                          SCREEN_WIDTH // 2, 392 + i * 26, center=True)
+                          SCREEN_WIDTH // 2, list_top + i * row_h + row_h // 2, center=True)
             surface.set_clip(None)
 
-            # 滚动指示
+            # 滚动指示（在列表区域下方，与按钮之间）
             if wrong_n > visible:
                 shown_end = min(start + visible, wrong_n)
-                draw_text(surface, f"↑↓ 滚动查看  {start+1}–{shown_end} / {wrong_n}",
-                          13, COLOR_TEXT_SUB, SCREEN_WIDTH // 2, 520, center=True)
+                draw_text(surface, f"↑↓ 滚轮翻页  {start+1}–{shown_end} / {wrong_n}",
+                          13, COLOR_TEXT_SUB, SCREEN_WIDTH // 2,
+                          list_top + visible * row_h + 16, center=True)
 
         draw_button(surface, "再来一关", self._retry_btn(),
                     COLOR_PRIMARY, WHITE, font_size=22, radius=14)
@@ -225,7 +231,7 @@ class ChallengeScene:
                     (180, 188, 205), WHITE, font_size=22, radius=14)
 
     def _retry_btn(self):
-        return pygame.Rect(SCREEN_WIDTH // 2 - 290, 644, 256, 52)
+        return pygame.Rect(SCREEN_WIDTH // 2 - 290, 662, 256, 52)
 
     def _menu_btn(self):
-        return pygame.Rect(SCREEN_WIDTH // 2 + 34, 644, 256, 52)
+        return pygame.Rect(SCREEN_WIDTH // 2 + 34, 662, 256, 52)

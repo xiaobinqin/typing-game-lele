@@ -175,7 +175,7 @@ class ModeSelectScene:
             if mk:
                 best = get_best_record(mk,
                                        level=self.game.selected_level,
-                                       content=CONTENT_ITEMS[self.selected_content][0])
+                                       content_type=CONTENT_ITEMS[self.selected_content][0])
                 if best:
                     best_txt = f"最高 {best['score']} 分"
                     draw_text(surface, best_txt, 13, color,

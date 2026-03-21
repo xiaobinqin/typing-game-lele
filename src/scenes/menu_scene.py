@@ -109,7 +109,7 @@ class MenuScene:
     def _draw_feature_strip(self, surface):
         features = [
             ("📚", "人教版同步"),
-            ("🎯", "6大练习模式"),
+            ("🎮", "4大游戏模式"),
             ("🏆", "排行榜对战"),
         ]
         total_w = 660

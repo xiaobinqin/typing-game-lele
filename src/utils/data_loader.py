@@ -10,8 +10,15 @@ _json_cache: dict = {}
 def _load_json(filename):
     if filename not in _json_cache:
         path = os.path.join(DATA_DIR, filename)
-        with open(path, "r", encoding="utf-8") as f:
-            _json_cache[filename] = json.load(f)
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                _json_cache[filename] = json.load(f)
+        except FileNotFoundError:
+            print(f"[data_loader] 题库文件不存在: {path}")
+            _json_cache[filename] = {}
+        except Exception as e:
+            print(f"[data_loader] 读取题库失败 {path}: {e}")
+            _json_cache[filename] = {}
     return _json_cache[filename]
 
 
@@ -72,21 +79,25 @@ def build_quiz_pool(content_type: str, level: int, count: int = 20) -> list[dict
     if content_type in ("initials", "finals", "whole", "syllables"):
         items = get_phonics_items(content_type)
         for item in items:
+            # phonics 题库本身已是无声调小写拼音，normalize 保持一致性
+            answer = normalize_pinyin(item)
             pool.append({
                 "display": item,
-                "answer": item.replace("v", "v"),
-                "hint": f"拼音: {item}",
-                "type": "phonics"
+                "answer":  answer,
+                "hint":    f"拼音: {item}",
+                "type":    "phonics"
             })
 
     elif content_type == "characters":
         items = get_character_items(level)
         for it in items:
+            # 统一 normalize，避免题库数据含声调/空格时判错
+            answer = normalize_pinyin(it["pinyin"])
             pool.append({
                 "display": it["char"],
-                "answer": it["pinyin"],
-                "hint": f"{it['char']} = {it['pinyin']} ({it['meaning']})",
-                "type": "character"
+                "answer":  answer,
+                "hint":    f"{it['char']} = {it['pinyin']} ({it['meaning']})",
+                "type":    "character"
             })
 
     elif content_type == "words":

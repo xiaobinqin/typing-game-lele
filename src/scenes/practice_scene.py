@@ -90,8 +90,7 @@ class PracticeScene:
     def update(self):
         if self.feedback:
             k, t, n = self.feedback
-            if n > 1:
-                self.feedback = (k, t, n - 1)
+            self.feedback = (k, t, n - 1) if n > 1 else None
 
     def draw(self, surface):
         draw_background_solid(surface, COLOR_BG_MAIN)

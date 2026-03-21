@@ -254,7 +254,7 @@ class FallingScene:
                         on_back=lambda: self.game.change_scene(SCENE_MODE_SELECT),
                     )
                 elif self._menu_btn().collidepoint(mx, my):
-                    self.game.change_scene(SCENE_MENU)
+                    self.game.change_scene(SCENE_MODE_SELECT)
             return
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -396,7 +396,7 @@ class FallingScene:
             surface.blit(overlay, (0, 0))
             draw_text(surface, "已暂停", 56, WHITE,
                       SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 20, center=True, bold=True)
-            draw_text(surface, "点击「继续」或按任意键恢复",
+            draw_text(surface, "点击右上角「继续」或按任意键恢复",
                       22, (200, 210, 230), SCREEN_WIDTH // 2,
                       SCREEN_HEIGHT // 2 + 44, center=True)
 
@@ -445,7 +445,7 @@ class FallingScene:
 
         draw_button(surface, "再来一局", self._retry_btn(),
                     COLOR_PRIMARY, WHITE, font_size=24, radius=14)
-        draw_button(surface, "返回主菜单", self._menu_btn(),
+        draw_button(surface, "返回选择", self._menu_btn(),
                     (180, 188, 205), WHITE, font_size=24, radius=14)
 
     def _retry_btn(self):

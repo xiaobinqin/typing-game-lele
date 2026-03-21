@@ -1,7 +1,7 @@
 import pygame
 import sys
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

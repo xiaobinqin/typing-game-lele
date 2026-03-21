@@ -56,14 +56,14 @@ def get_records():
     return _load_json(_RECORD_FILE, [])
 
 
-def get_best_record(mode: str, level: int = None, content: str = None) -> Optional[dict]:
-    """返回指定模式（可选年级/内容）的历史最高分记录"""
+def get_best_record(mode: str, level: int = None, content_type: str = None) -> Optional[dict]:
+    """返回指定模式（可选年级/内容类型）的历史最高分记录"""
     records = get_records()
     filtered = [r for r in records if r.get("mode") == mode]
     if level is not None:
         filtered = [r for r in filtered if r.get("level") == level]
-    if content is not None:
-        filtered = [r for r in filtered if r.get("content_type") == content]
+    if content_type is not None:
+        filtered = [r for r in filtered if r.get("content_type") == content_type]
     if not filtered:
         return None
     return max(filtered, key=lambda r: r.get("score", 0))
@@ -74,11 +74,20 @@ def save_leaderboard(name: str, score: int, mode: str = "speed"):
     board = _load_json(_LEADER_FILE, {})
     if mode not in board:
         board[mode] = []
-    board[mode].append({
-        "name":  name,
-        "score": score,
-        "time":  datetime.now().strftime("%Y-%m-%d %H:%M"),
-    })
+
+    # 同名只保留最高分（去重：找到同名记录则更新，否则新增）
+    existing = next((e for e in board[mode] if e["name"] == name), None)
+    if existing:
+        if score > existing["score"]:
+            existing["score"] = score
+            existing["time"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+    else:
+        board[mode].append({
+            "name":  name,
+            "score": score,
+            "time":  datetime.now().strftime("%Y-%m-%d %H:%M"),
+        })
+
     board[mode] = sorted(board[mode], key=lambda x: x["score"], reverse=True)[:10]
     _save_json(_LEADER_FILE, board)
 
