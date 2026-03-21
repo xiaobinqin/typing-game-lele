@@ -1,36 +1,36 @@
+import math
 import pygame
 from src.utils.constants import *
-from src.utils.draw_utils import (draw_text, draw_button, draw_background_gradient,
-                                   draw_rounded_rect, draw_star)
+from src.utils.draw_utils import (draw_text, draw_button, draw_background_solid,
+                                   draw_card, draw_star, draw_divider, draw_badge)
 
 
 class MenuScene:
     def __init__(self, game):
         self.game = game
-        self.buttons = self._build_buttons()
         self.hover_idx = -1
         self.anim_tick = 0
-        self.particles = []
+        self.buttons = self._build_buttons()
 
     def _build_buttons(self):
         cx = SCREEN_WIDTH // 2
-        btn_w, btn_h = 260, 58
-        gap = 18
-        start_y = 340
-        labels = [
-            ("开始游戏", SCENE_GRADE_SELECT),
-            ("排行榜",   SCENE_LEADERBOARD),
+        btn_w, btn_h = 280, 60
+        gap = 16
+        start_y = 390
+        items = [
+            ("开始游戏", SCENE_GRADE_SELECT, COLOR_PRIMARY),
+            ("排  行  榜", SCENE_LEADERBOARD, (100, 116, 155)),
         ]
-        buttons = []
-        for i, (label, scene) in enumerate(labels):
+        btns = []
+        for i, (label, scene, color) in enumerate(items):
             y = start_y + i * (btn_h + gap)
-            buttons.append({
-                "rect": pygame.Rect(cx - btn_w // 2, y, btn_w, btn_h),
+            btns.append({
+                "rect":  pygame.Rect(cx - btn_w // 2, y, btn_w, btn_h),
                 "label": label,
                 "scene": scene,
-                "color": COLOR_PRIMARY if i == 0 else COLOR_SECONDARY,
+                "color": color,
             })
-        return buttons
+        return btns
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEMOTION:
@@ -49,38 +49,65 @@ class MenuScene:
         self.anim_tick += 1
 
     def draw(self, surface):
-        draw_background_gradient(surface, (200, 230, 255), (255, 240, 200),
-                                 SCREEN_WIDTH, SCREEN_HEIGHT)
-        self._draw_decorations(surface)
+        draw_background_solid(surface, COLOR_BG_MAIN)
+        self._draw_top_band(surface)
+        self._draw_title(surface)
+        self._draw_buttons(surface)
+        self._draw_footer(surface)
 
-        # 标题
-        draw_text(surface, "打字大挑战", 72, COLOR_PRIMARY,
-                  SCREEN_WIDTH // 2, 140, center=True, bold=True)
-        draw_text(surface, "乐乐版", 40, COLOR_SECONDARY,
-                  SCREEN_WIDTH // 2, 220, center=True, bold=True)
-        draw_text(surface, "学拼音 · 认汉字 · 打字快手", 26, COLOR_TEXT_SUB,
-                  SCREEN_WIDTH // 2, 280, center=True)
+    def _draw_top_band(self, surface):
+        """顶部蓝色装饰带"""
+        band_h = 260
+        pygame.draw.rect(surface, COLOR_PRIMARY,
+                         (0, 0, SCREEN_WIDTH, band_h), border_radius=0)
+        # 底部弧形
+        pygame.draw.ellipse(surface, COLOR_PRIMARY,
+                            (-60, band_h - 60, SCREEN_WIDTH + 120, 120))
 
-        # 按钮
+        # 右上角淡色圆形装饰
+        t = self.anim_tick * 0.018
+        for i, (ox, oy, r, alpha) in enumerate([
+            (880, 50, 90, 22), (940, 160, 60, 16), (820, 200, 40, 12),
+        ]):
+            dy = int(8 * math.sin(t + i * 1.3))
+            circ_surf = pygame.Surface((r * 2, r * 2), pygame.SRCALPHA)
+            pygame.draw.circle(circ_surf, (255, 255, 255, alpha), (r, r), r)
+            surface.blit(circ_surf, (ox - r, oy + dy - r))
+
+    def _draw_title(self, surface):
+        cx = SCREEN_WIDTH // 2
+        # 主标题（白色，在蓝色带上）
+        draw_text(surface, "打字大挑战", 72, WHITE, cx, 110, center=True, bold=True)
+        draw_text(surface, "乐  乐  版", 34, (200, 225, 255), cx, 188, center=True, bold=True)
+
+        # 副标题（蓝色带下方）
+        draw_text(surface, "学拼音  ·  认汉字  ·  打字快手",
+                  22, COLOR_TEXT_SUB, cx, 310, center=True)
+
+    def _draw_buttons(self, surface):
         for i, btn in enumerate(self.buttons):
+            hover = (i == self.hover_idx)
             draw_button(surface, btn["label"], btn["rect"],
-                        btn["color"], font_size=28,
-                        hover=(i == self.hover_idx))
+                        btn["color"], WHITE, font_size=26,
+                        radius=14, hover=hover, shadow=True)
 
-        # 底部提示
-        draw_text(surface, "适合小学 1-6 年级  ·  人教版教材同步",
-                  18, COLOR_TEXT_SUB, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 40, center=True)
+    def _draw_footer(self, surface):
+        draw_text(surface, "适合小学 1 — 6 年级  ·  人教版教材同步",
+                  17, COLOR_TEXT_SUB, SCREEN_WIDTH // 2,
+                  SCREEN_HEIGHT - 36, center=True)
 
-    def _draw_decorations(self, surface):
-        import math
-        t = self.anim_tick * 0.03
-        # 左侧星星装饰
-        for i in range(5):
-            x = 80 + i * 30
-            y = 100 + int(20 * math.sin(t + i))
-            draw_star(surface, x, y, filled=True, size=14 + i * 2)
-        # 右侧星星装饰
-        for i in range(5):
-            x = SCREEN_WIDTH - 80 - i * 30
-            y = 100 + int(20 * math.sin(t + i + 2))
-            draw_star(surface, x, y, filled=True, size=14 + i * 2)
+        # 底部装饰星星（平静漂浮）
+        t = self.anim_tick * 0.025
+        star_positions = [(160, 530), (280, 570), (744, 570), (864, 530)]
+        for j, (sx, sy) in enumerate(star_positions):
+            dy = int(6 * math.sin(t + j * 0.9))
+            alpha_v = 160 + int(60 * math.sin(t + j))
+            s = pygame.Surface((40, 40), pygame.SRCALPHA)
+            pts = []
+            sz = 14
+            for k in range(10):
+                ang = math.pi / 2 + k * math.pi / 5
+                r = sz if k % 2 == 0 else sz * 4 // 9
+                pts.append((20 + r * math.cos(ang), 20 - r * math.sin(ang)))
+            pygame.draw.polygon(s, (255, 195, 0, alpha_v), pts)
+            surface.blit(s, (sx - 20, sy + dy - 20))

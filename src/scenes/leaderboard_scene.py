@@ -1,18 +1,18 @@
 import pygame
 from src.utils.constants import *
-from src.utils.draw_utils import (draw_text, draw_button, draw_rounded_rect,
-                                   draw_background_gradient, draw_star)
+from src.utils.draw_utils import (draw_text, draw_button, draw_background_solid,
+                                   draw_card, draw_divider, draw_star)
 from src.utils.save_manager import get_leaderboard, get_records
 
 
 class LeaderboardScene:
     def __init__(self, game):
         self.game = game
-        self.tab = 0   # 0=竞速排行 1=学习记录
-        self.back_btn = pygame.Rect(30, 30, 100, 44)
+        self.tab = 0
+        self.back_btn = pygame.Rect(20, 14, 88, 38)
         self.tab_btns = [
-            pygame.Rect(SCREEN_WIDTH // 2 - 160, 100, 140, 44),
-            pygame.Rect(SCREEN_WIDTH // 2 + 20,  100, 140, 44),
+            pygame.Rect(SCREEN_WIDTH // 2 - 156, 100, 140, 42),
+            pygame.Rect(SCREEN_WIDTH // 2 + 16,  100, 140, 42),
         ]
 
     def handle_event(self, event):
@@ -29,79 +29,92 @@ class LeaderboardScene:
         pass
 
     def draw(self, surface):
-        draw_background_gradient(surface, (225, 240, 255), (255, 245, 215),
-                                 SCREEN_WIDTH, SCREEN_HEIGHT)
-        draw_text(surface, "排行榜 & 学习记录", 46, COLOR_PRIMARY,
-                  SCREEN_WIDTH // 2, 50, center=True, bold=True)
-
-        labels = ["竞速排行", "学习记录"]
-        for i, (btn, label) in enumerate(zip(self.tab_btns, labels)):
-            bg = COLOR_PRIMARY if i == self.tab else LIGHT_GRAY
-            tc = WHITE if i == self.tab else COLOR_TEXT_MAIN
-            draw_button(surface, label, btn, bg, tc, font_size=22)
-
+        draw_background_solid(surface, COLOR_BG_MAIN)
+        self._draw_header(surface)
         if self.tab == 0:
             self._draw_speed_board(surface)
         else:
             self._draw_records(surface)
+        draw_button(surface, "← 返回", self.back_btn,
+                    (180, 188, 205), WHITE, font_size=15, radius=10, shadow=False)
 
-        draw_button(surface, "← 返回", self.back_btn, GRAY, WHITE, font_size=19)
+    def _draw_header(self, surface):
+        draw_text(surface, "排行榜", 42, COLOR_TEXT_MAIN,
+                  SCREEN_WIDTH // 2, 52, center=True, bold=True)
+        labels = ["竞速排行", "学习记录"]
+        for i, (btn, label) in enumerate(zip(self.tab_btns, labels)):
+            sel = (i == self.tab)
+            bg = COLOR_PRIMARY if sel else (230, 234, 244)
+            tc = WHITE if sel else COLOR_TEXT_SUB
+            draw_button(surface, label, btn, bg, tc,
+                        font_size=18, radius=12, shadow=sel)
+        draw_divider(surface, 60, 160, SCREEN_WIDTH - 60)
 
     def _draw_speed_board(self, surface):
         board = get_leaderboard("speed")
-        start_y = 175
-        col_headers = ["排名", "昵称", "得分", "时间"]
-        col_xs = [160, 360, 560, 760]
+        table = pygame.Rect(80, 176, SCREEN_WIDTH - 160, 500)
+        draw_card(surface, table, bg=WHITE, radius=18, shadow=True)
 
-        for i, (header, x) in enumerate(zip(col_headers, col_xs)):
-            draw_text(surface, header, 22, COLOR_TEXT_SUB, x, start_y, center=True)
-        pygame.draw.line(surface, LIGHT_GRAY,
-                         (100, start_y + 28), (SCREEN_WIDTH - 100, start_y + 28), 1)
+        col_xs = [table.x + 70, table.x + 230, table.x + 400, table.x + 580]
+        headers = ["排名", "昵称", "得分", "时间"]
+        hy = table.y + 34
+        for h, cx in zip(headers, col_xs):
+            draw_text(surface, h, 17, COLOR_TEXT_SUB, cx, hy, center=True, bold=True)
+        draw_divider(surface, table.x + 24, hy + 22, table.right - 24, (235, 238, 248))
 
         if not board:
-            draw_text(surface, "暂无记录，快去竞速模式挑战吧！", 28, COLOR_TEXT_SUB,
-                      SCREEN_WIDTH // 2, 380, center=True)
+            draw_text(surface, "暂无记录，快去竞速模式挑战吧！",
+                      22, COLOR_TEXT_SUB, SCREEN_WIDTH // 2, table.centery, center=True)
             return
 
-        rank_colors = [(255, 200, 0), (180, 180, 180), (200, 140, 80)]
-        for i, entry in enumerate(board[:10]):
-            y = start_y + 50 + i * 46
+        rank_colors = [(255, 185, 0), (160, 168, 180), (200, 130, 60)]
+        for i, entry in enumerate(board[:8]):
+            ry = hy + 50 + i * 46
             if i % 2 == 0:
-                pygame.draw.rect(surface, (240, 245, 255),
-                                 (100, y - 16, SCREEN_WIDTH - 200, 40), border_radius=8)
-            rc = rank_colors[i] if i < 3 else COLOR_TEXT_MAIN
-            draw_text(surface, f"#{i+1}", 24, rc, col_xs[0], y, center=True, bold=(i < 3))
-            draw_text(surface, entry["name"],  22, COLOR_TEXT_MAIN, col_xs[1], y, center=True)
-            draw_text(surface, str(entry["score"]), 24, COLOR_PRIMARY, col_xs[2], y, center=True, bold=True)
-            draw_text(surface, entry["time"],   18, COLOR_TEXT_SUB, col_xs[3], y, center=True)
+                stripe = pygame.Rect(table.x + 8, ry - 18, table.width - 16, 40)
+                pygame.draw.rect(surface, (248, 250, 254), stripe, border_radius=8)
+            rc = rank_colors[i] if i < 3 else COLOR_TEXT_SUB
+            draw_text(surface, f"#{i+1}", 20, rc, col_xs[0], ry, center=True, bold=(i < 3))
+            if i < 3:
+                draw_star(surface, col_xs[0] - 26, ry, filled=True, size=10)
+            draw_text(surface, entry["name"],  19, COLOR_TEXT_MAIN, col_xs[1], ry, center=True)
+            draw_text(surface, f"{entry['score']}", 22, COLOR_PRIMARY,
+                      col_xs[2], ry, center=True, bold=True)
+            draw_text(surface, entry["time"][-5:], 16, COLOR_TEXT_SUB,
+                      col_xs[3], ry, center=True)
 
     def _draw_records(self, surface):
-        records = get_records()
-        records = list(reversed(records[-10:]))
-        start_y = 175
+        records = list(reversed(get_records()[-10:]))
+        table = pygame.Rect(60, 176, SCREEN_WIDTH - 120, 500)
+        draw_card(surface, table, bg=WHITE, radius=18, shadow=True)
 
+        col_xs = [table.x + 70, table.x + 180, table.x + 290, table.x + 390,
+                  table.x + 500, table.x + 610]
         headers = ["时间", "模式", "难度", "题数", "正确率", "得分"]
-        col_xs = [120, 230, 330, 450, 570, 700]
-
-        for header, x in zip(headers, col_xs):
-            draw_text(surface, header, 20, COLOR_TEXT_SUB, x, start_y, center=True)
-        pygame.draw.line(surface, LIGHT_GRAY,
-                         (60, start_y + 26), (SCREEN_WIDTH - 60, start_y + 26), 1)
+        hy = table.y + 34
+        for h, cx in zip(headers, col_xs):
+            draw_text(surface, h, 16, COLOR_TEXT_SUB, cx, hy, center=True, bold=True)
+        draw_divider(surface, table.x + 20, hy + 22, table.right - 20, (235, 238, 248))
 
         if not records:
-            draw_text(surface, "暂无学习记录，开始你的第一局吧！", 28, COLOR_TEXT_SUB,
-                      SCREEN_WIDTH // 2, 380, center=True)
+            draw_text(surface, "暂无学习记录，开始你的第一局吧！",
+                      22, COLOR_TEXT_SUB, SCREEN_WIDTH // 2, table.centery, center=True)
             return
 
-        mode_names = {"falling": "消消乐", "challenge": "闯关", "speed": "竞速", "practice": "练习"}
+        mode_names = {"falling": "消消乐", "challenge": "闯关",
+                      "speed": "竞速", "practice": "练习"}
         for i, rec in enumerate(records):
-            y = start_y + 44 + i * 40
+            ry = hy + 48 + i * 40
             if i % 2 == 0:
-                pygame.draw.rect(surface, (245, 248, 255),
-                                 (60, y - 14, SCREEN_WIDTH - 120, 36), border_radius=6)
-            draw_text(surface, rec["time"][-5:], 17, COLOR_TEXT_SUB, col_xs[0], y, center=True)
-            draw_text(surface, mode_names.get(rec["mode"], rec["mode"]), 18, COLOR_TEXT_MAIN, col_xs[1], y, center=True)
-            draw_text(surface, LEVEL_NAMES.get(rec["level"], ""), 18, COLOR_TEXT_MAIN, col_xs[2], y, center=True)
-            draw_text(surface, str(rec["total"]), 18, COLOR_TEXT_MAIN, col_xs[3], y, center=True)
-            draw_text(surface, f"{rec['accuracy']}%", 18, COLOR_SUCCESS, col_xs[4], y, center=True)
-            draw_text(surface, str(rec["score"]), 18, COLOR_PRIMARY, col_xs[5], y, center=True, bold=True)
+                stripe = pygame.Rect(table.x + 8, ry - 16, table.width - 16, 36)
+                pygame.draw.rect(surface, (248, 250, 254), stripe, border_radius=6)
+
+            draw_text(surface, rec["time"][-5:],  15, COLOR_TEXT_SUB,  col_xs[0], ry, center=True)
+            draw_text(surface, mode_names.get(rec["mode"], rec["mode"]),
+                      16, COLOR_TEXT_MAIN, col_xs[1], ry, center=True)
+            draw_text(surface, LEVEL_NAMES.get(rec["level"], ""),
+                      16, COLOR_TEXT_MAIN, col_xs[2], ry, center=True)
+            draw_text(surface, str(rec["total"]),  16, COLOR_TEXT_MAIN, col_xs[3], ry, center=True)
+            acc_color = COLOR_SUCCESS if rec["accuracy"] >= 70 else COLOR_DANGER
+            draw_text(surface, f"{rec['accuracy']}%", 16, acc_color,   col_xs[4], ry, center=True, bold=True)
+            draw_text(surface, str(rec["score"]),  18, COLOR_PRIMARY,  col_xs[5], ry, center=True, bold=True)

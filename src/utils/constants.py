@@ -36,15 +36,16 @@ PURPLE      = (140, 60,  200)
 PINK        = (255, 100, 160)
 CYAN        = (0,   200, 200)
 
-# 主题色
-COLOR_PRIMARY    = (72,  154, 255)   # 主蓝色
-COLOR_SECONDARY  = (255, 180, 0)     # 金黄色
-COLOR_SUCCESS    = (60,  200, 100)   # 成功绿
-COLOR_DANGER     = (220, 70,  70)    # 危险红
-COLOR_BG_MAIN    = (240, 248, 255)   # 主背景（浅蓝白）
+# 主题色 —— 简洁蓝白风格
+COLOR_PRIMARY    = (56,  132, 255)   # 主蓝色（鲜明）
+COLOR_SECONDARY  = (255, 170, 0)     # 金黄色
+COLOR_SUCCESS    = (40,  190, 95)    # 成功绿
+COLOR_DANGER     = (225, 55,  55)    # 危险红
+COLOR_BG_MAIN    = (245, 248, 254)   # 主背景（极浅蓝灰）
 COLOR_BG_PANEL   = (255, 255, 255)   # 面板白
-COLOR_TEXT_MAIN  = (40,  40,  80)    # 主文字深蓝黑
-COLOR_TEXT_SUB   = (120, 120, 160)   # 副文字灰蓝
+COLOR_TEXT_MAIN  = (28,  36,  64)    # 主文字（深蓝黑）
+COLOR_TEXT_SUB   = (130, 138, 168)   # 副文字（蓝灰）
+COLOR_BORDER     = (218, 224, 238)   # 边框色
 
 # 字体路径（内置系统字体作为备选）
 FONT_PATH_CN = os.path.join(BASE_DIR, "assets", "fonts", "chinese.ttf")
