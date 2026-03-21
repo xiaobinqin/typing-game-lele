@@ -11,14 +11,24 @@ MODES = [
     (SCENE_PRACTICE,  "练习模式", "无压力自由练习，打好基础",  (38, 178, 110)),
 ]
 
-CONTENT_ITEMS = [
-    (CONTENT_INITIALS,   "声母"),
-    (CONTENT_FINALS,     "韵母"),
-    (CONTENT_WHOLE,      "整体认读"),
-    (CONTENT_SYLLABLES,  "音节"),
-    (CONTENT_CHARACTERS, "汉字"),
-    (CONTENT_WORDS,      "词语"),
+# 每组：(组标题, [(content_type, 按钮名), ...])
+CONTENT_GROUPS = [
+    ("拼音基础", [
+        (CONTENT_INITIALS,  "声母"),
+        (CONTENT_FINALS,    "韵母"),
+    ]),
+    ("拼读练习", [
+        (CONTENT_WHOLE,     "整体认读"),
+        (CONTENT_SYLLABLES, "音节"),
+    ]),
+    ("字词学习", [
+        (CONTENT_CHARACTERS, "汉字"),
+        (CONTENT_WORDS,      "词语"),
+    ]),
 ]
+
+# 展开为顺序列表（与原 selected_content 索引对齐）
+CONTENT_ITEMS = [item for _, items in CONTENT_GROUPS for item in items]
 
 
 class ModeSelectScene:
@@ -26,12 +36,9 @@ class ModeSelectScene:
         self.game = game
         self.hover_mode = -1
         self.hover_content = -1
-        self.hover_speed = -1
         self.selected_content = 0
-        self.selected_speed = getattr(game, "falling_speed_level", 1)
         self.mode_cards = self._build_mode_cards()
         self.content_btns = self._build_content_btns()
-        self.speed_btns = self._build_speed_btns()
         self.back_btn = pygame.Rect(36, 28, 96, 40)
 
     def _build_mode_cards(self):
@@ -50,31 +57,33 @@ class ModeSelectScene:
         return cards
 
     def _build_content_btns(self):
-        btn_w, btn_h = 112, 38
-        gap = 12
-        total_w = len(CONTENT_ITEMS) * btn_w + (len(CONTENT_ITEMS) - 1) * gap
+        """
+        3组，每组内2个按钮并排，组间留更大间距。
+        返回 list of {"rect", "content", "name", "group_idx", "btn_idx"}
+        """
+        group_inner_w = 240   # 每组两按钮总宽
+        btn_w, btn_h = 110, 40
+        btn_gap = 10          # 组内间距
+        group_gap = 28        # 组间间距
+        total_groups = len(CONTENT_GROUPS)
+        total_w = total_groups * group_inner_w + (total_groups - 1) * group_gap
         sx = (SCREEN_WIDTH - total_w) // 2
-        y = 424
-        btns = []
-        for i, (ct, name) in enumerate(CONTENT_ITEMS):
-            x = sx + i * (btn_w + gap)
-            btns.append({"rect": pygame.Rect(x, y, btn_w, btn_h),
-                         "content": ct, "name": name})
-        return btns
+        y = 456
 
-    def _build_speed_btns(self):
-        btn_w, btn_h = 106, 38
-        gap = 14
-        labels = list(FALLING_SPEED_NAMES.values())
-        total_w = len(labels) * btn_w + (len(labels) - 1) * gap
-        sx = (SCREEN_WIDTH - total_w) // 2
-        y = 530
         btns = []
-        for i, label in enumerate(labels):
-            x = sx + i * (btn_w + gap)
-            btns.append({"rect": pygame.Rect(x, y, btn_w, btn_h),
-                         "level": i, "name": label,
-                         "color": FALLING_SPEED_COLORS[i]})
+        flat_idx = 0
+        for gi, (_, items) in enumerate(CONTENT_GROUPS):
+            gx = sx + gi * (group_inner_w + group_gap)
+            for bi, (ct, name) in enumerate(items):
+                x = gx + bi * (btn_w + btn_gap)
+                btns.append({
+                    "rect": pygame.Rect(x, y, btn_w, btn_h),
+                    "content": ct,
+                    "name": name,
+                    "flat_idx": flat_idx,
+                    "group_idx": gi,
+                })
+                flat_idx += 1
         return btns
 
     def handle_event(self, event):
@@ -82,16 +91,12 @@ class ModeSelectScene:
             mx, my = event.pos
             self.hover_mode = -1
             self.hover_content = -1
-            self.hover_speed = -1
             for i, c in enumerate(self.mode_cards):
                 if c["rect"].collidepoint(mx, my):
                     self.hover_mode = i
             for i, b in enumerate(self.content_btns):
                 if b["rect"].collidepoint(mx, my):
                     self.hover_content = i
-            for i, b in enumerate(self.speed_btns):
-                if b["rect"].collidepoint(mx, my):
-                    self.hover_speed = i
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             mx, my = event.pos
@@ -100,16 +105,11 @@ class ModeSelectScene:
                 return
             for i, b in enumerate(self.content_btns):
                 if b["rect"].collidepoint(mx, my):
-                    self.selected_content = i
-            for i, b in enumerate(self.speed_btns):
-                if b["rect"].collidepoint(mx, my):
-                    self.selected_speed = i
-                    self.game.falling_speed_level = i
+                    self.selected_content = b["flat_idx"]
             for c in self.mode_cards:
                 if c["rect"].collidepoint(mx, my):
                     ct = CONTENT_ITEMS[self.selected_content][0]
                     self.game.selected_content = ct
-                    self.game.falling_speed_level = self.selected_speed
                     self.game.change_scene(c["scene"])
 
     def update(self):
@@ -119,7 +119,7 @@ class ModeSelectScene:
         draw_background_solid(surface, COLOR_BG_MAIN)
         self._draw_header(surface)
         self._draw_mode_cards(surface)
-        self._draw_settings(surface)
+        self._draw_content_groups(surface)
         draw_button(surface, "← 返回", self.back_btn,
                     (180, 188, 205), WHITE, font_size=17, radius=10, shadow=False)
 
@@ -138,43 +138,43 @@ class ModeSelectScene:
             color = c["color"]
 
             draw_card(surface, rect, bg=WHITE, radius=16, shadow=True)
-            # 左侧色条
             bar = pygame.Rect(rect.x, rect.y, 6, rect.height)
-            pygame.draw.rect(surface, color, bar,
-                             border_radius=16)
+            pygame.draw.rect(surface, color, bar, border_radius=16)
 
-            cx = rect.x + rect.width // 2 + 3
             draw_text(surface, c["name"], 24, color,
                       rect.x + 26, rect.y + 36, bold=True)
             draw_text(surface, c["desc"], 16, COLOR_TEXT_SUB,
                       rect.x + 26, rect.y + 72)
-            # 底部箭头提示
             draw_text(surface, "点击进入  →", 14,
                       color if hover else (200, 205, 220),
-                      rect.right - 16, rect.bottom - 22,
-                      center=False)
+                      rect.right - 16, rect.bottom - 22)
 
-    def _draw_settings(self, surface):
-        # 内容类型
+    def _draw_content_groups(self, surface):
+        """绘制3组练习内容选择按钮，每组带标题"""
         draw_text(surface, "练习内容", 18, COLOR_TEXT_MAIN,
-                  SCREEN_WIDTH // 2, 396, center=True, bold=True)
-        for i, b in enumerate(self.content_btns):
-            sel = (i == self.selected_content)
-            hover = (i == self.hover_content)
-            bg = COLOR_PRIMARY if sel else (WHITE if hover else (240, 242, 248))
+                  SCREEN_WIDTH // 2, 418, center=True, bold=True)
+
+        group_inner_w = 240
+        group_gap = 28
+        total_w = len(CONTENT_GROUPS) * group_inner_w + (len(CONTENT_GROUPS) - 1) * group_gap
+        sx = (SCREEN_WIDTH - total_w) // 2
+        label_y = 442
+
+        # 绘制每组背景框 + 组标题
+        for gi, (group_title, _) in enumerate(CONTENT_GROUPS):
+            gx = sx + gi * (group_inner_w + group_gap)
+            bg_rect = pygame.Rect(gx - 8, label_y - 2, group_inner_w + 16, 62)
+            pygame.draw.rect(surface, (235, 239, 250), bg_rect, border_radius=12)
+            draw_text(surface, group_title, 13, COLOR_TEXT_SUB,
+                      gx + group_inner_w // 2, label_y + 10, center=True)
+
+        # 绘制按钮
+        for b in self.content_btns:
+            sel = (b["flat_idx"] == self.selected_content)
+            hover = (b["flat_idx"] == self.hover_content)
+            bg = COLOR_PRIMARY if sel else (WHITE if hover else (248, 250, 254))
             tc = WHITE if sel else (COLOR_TEXT_MAIN if hover else COLOR_TEXT_SUB)
             border = COLOR_PRIMARY if not sel and hover else None
             draw_button(surface, b["name"], b["rect"], bg, tc,
                         font_size=16, radius=10, hover=False,
                         border_color=border, shadow=sel)
-
-        # 消消乐速度
-        draw_text(surface, "消消乐速度", 18, COLOR_TEXT_MAIN,
-                  SCREEN_WIDTH // 2, 502, center=True, bold=True)
-        for i, b in enumerate(self.speed_btns):
-            sel = (i == self.selected_speed)
-            hover = (i == self.hover_speed)
-            bg = b["color"] if sel else (WHITE if hover else (240, 242, 248))
-            tc = WHITE if sel else (COLOR_TEXT_MAIN if hover else COLOR_TEXT_SUB)
-            draw_button(surface, b["name"], b["rect"], bg, tc,
-                        font_size=16, radius=10, hover=False, shadow=sel)
