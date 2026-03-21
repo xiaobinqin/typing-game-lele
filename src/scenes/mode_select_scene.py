@@ -36,7 +36,9 @@ class ModeSelectScene:
         self.game = game
         self.hover_mode = -1
         self.hover_content = -1
-        self.selected_content = 0
+        # 从 game 恢复上次选中项，保证返回时状态不丢失
+        self.selected_content = getattr(game, "selected_content_idx", 0)
+        self.selected_mode = getattr(game, "selected_mode_idx", -1)
         self.mode_cards = self._build_mode_cards()
         self.content_btns = self._build_content_btns()
         self.back_btn = pygame.Rect(36, 28, 96, 40)
@@ -110,10 +112,13 @@ class ModeSelectScene:
             for i, b in enumerate(self.content_btns):
                 if b["rect"].collidepoint(mx, my):
                     self.selected_content = b["flat_idx"]
-            for c in self.mode_cards:
+                    self.game.selected_content_idx = b["flat_idx"]  # 持久化选中项
+            for i, c in enumerate(self.mode_cards):
                 if c["rect"].collidepoint(mx, my):
                     ct = CONTENT_ITEMS[self.selected_content][0]
                     self.game.selected_content = ct
+                    self.game.selected_content_idx = self.selected_content
+                    self.game.selected_mode_idx = i   # 记住选中的模式
                     self.game.change_scene(c["scene"])
 
     def update(self):
@@ -138,10 +143,19 @@ class ModeSelectScene:
     def _draw_mode_cards(self, surface):
         for i, c in enumerate(self.mode_cards):
             hover = (i == self.hover_mode)
+            selected = (i == self.selected_mode)
             rect = c["rect"].inflate(0, hover * 6)
             color = c["color"]
 
-            draw_card(surface, rect, bg=WHITE, radius=16, shadow=True)
+            # 选中态：卡片背景用该模式颜色的浅色调，并加粗边框
+            if selected:
+                bg_color = tuple(min(255, v + 200) for v in color)  # 非常浅的底色
+                draw_card(surface, rect, bg=bg_color, radius=16, shadow=True)
+                # 选中高亮边框
+                pygame.draw.rect(surface, color, rect, width=3, border_radius=16)
+            else:
+                draw_card(surface, rect, bg=WHITE, radius=16, shadow=True)
+
             # 左侧色条
             bar = pygame.Rect(rect.x, rect.y, 6, rect.height)
             pygame.draw.rect(surface, color, bar, border_radius=16)
@@ -150,9 +164,10 @@ class ModeSelectScene:
                       rect.x + 26, rect.y + 36, bold=True)
             draw_text(surface, c["desc"], 16, COLOR_TEXT_SUB,
                       rect.x + 26, rect.y + 72)
-            # 底部提示：右对齐居中在卡片内
-            hint_color = color if hover else (200, 205, 220)
-            draw_text(surface, "点击进入 →", 13, hint_color,
+            # 底部提示：hover 或 selected 时用主题色
+            hint_color = color if (hover or selected) else (200, 205, 220)
+            hint_text = "上次选择 ✓" if (selected and not hover) else "点击进入 →"
+            draw_text(surface, hint_text, 13, hint_color,
                       rect.centerx, rect.bottom - 18, center=True)
 
     def _draw_content_groups(self, surface):

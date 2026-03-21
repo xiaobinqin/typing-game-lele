@@ -53,7 +53,7 @@ class PracticeScene:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             mx, my = event.pos
             if self.back_btn.collidepoint(mx, my):
-                self.game.change_scene(SCENE_MENU)
+                self.game.change_scene(SCENE_MODE_SELECT)
                 return
             if self.hint_btn.collidepoint(mx, my):
                 self.show_hint = not self.show_hint
@@ -74,7 +74,7 @@ class PracticeScene:
             elif event.key == pygame.K_BACKSPACE:
                 self.input_text = self.input_text[:-1]
             elif event.key == pygame.K_ESCAPE:
-                self.game.change_scene(SCENE_MENU)
+                self.game.change_scene(SCENE_MODE_SELECT)
             elif event.key == pygame.K_RIGHT:
                 self._go(1)
             elif event.key == pygame.K_LEFT:

@@ -26,7 +26,9 @@ class Game:
         # 全局游戏状态
         self.selected_level = LEVEL_STARTER
         self.selected_content = CONTENT_INITIALS
-        self.falling_speed_level = 1   # 0=慢 1=中 2=快
+        self.selected_content_idx = 0   # 记住模式选择页的选中练习内容索引
+        self.selected_mode_idx = -1     # 记住上次进入的游戏模式索引（-1表示未选）
+        self.falling_speed_level = 1    # 0=慢 1=中 2=快
 
         # 场景注册表（懒加载）
         self._scene_cache = {}

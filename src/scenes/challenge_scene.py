@@ -66,12 +66,12 @@ class ChallengeScene:
                 if self._retry_btn().collidepoint(mx, my):
                     self.reset()
                 elif self._menu_btn().collidepoint(mx, my):
-                    self.game.change_scene(SCENE_MENU)
+                    self.game.change_scene(SCENE_MODE_SELECT)
             return
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.back_btn.collidepoint(*event.pos):
-                self.game.change_scene(SCENE_MENU)
+                self.game.change_scene(SCENE_MODE_SELECT)
                 return
 
         if event.type == pygame.KEYDOWN:
@@ -80,7 +80,7 @@ class ChallengeScene:
             elif event.key == pygame.K_BACKSPACE:
                 self.input_text = self.input_text[:-1]
             elif event.key == pygame.K_ESCAPE:
-                self.game.change_scene(SCENE_MENU)
+                self.game.change_scene(SCENE_MODE_SELECT)
             else:
                 ch = event.unicode
                 if ch and ch.isalpha() and len(self.input_text) < 16:
@@ -195,7 +195,7 @@ class ChallengeScene:
 
         draw_button(surface, "再来一关", self._retry_btn(),
                     COLOR_PRIMARY, WHITE, font_size=22, radius=14)
-        draw_button(surface, "返回主菜单", self._menu_btn(),
+        draw_button(surface, "返回选择", self._menu_btn(),
                     (180, 188, 205), WHITE, font_size=22, radius=14)
 
     def _retry_btn(self):

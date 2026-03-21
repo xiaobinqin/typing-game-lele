@@ -428,4 +428,11 @@ class FallingScene:
             save_record("falling", self.game.selected_level,
                         self.game.selected_content,
                         self.total_answered, self.correct, self.score)
-        self.game.change_scene(SCENE_MENU)
+        # 退出游戏回到速度选择页（而非直接跳主菜单）
+        self._picking_speed = True
+        self._game_started = False
+        self._speed_pick = SpeedPickScene(
+            selected=getattr(self.game, "falling_speed_level", 1),
+            on_confirm=self._on_speed_confirmed,
+            on_back=lambda: self.game.change_scene(SCENE_MODE_SELECT),
+        )
