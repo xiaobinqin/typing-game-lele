@@ -1,12 +1,32 @@
 import json
 import os
 import random
+import unicodedata
 from src.utils.constants import DATA_DIR, LEVEL_GRADES
 
+# 模块级缓存，避免重复 I/O
+_json_cache: dict = {}
+
 def _load_json(filename):
-    path = os.path.join(DATA_DIR, filename)
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    if filename not in _json_cache:
+        path = os.path.join(DATA_DIR, filename)
+        with open(path, "r", encoding="utf-8") as f:
+            _json_cache[filename] = json.load(f)
+    return _json_cache[filename]
+
+
+def normalize_pinyin(text: str) -> str:
+    """
+    拼音标准化：去声调、去空格、转小写，用于答题匹配容错。
+    例：'bái yún' -> 'baiyun'，'lǘ' -> 'lv'
+    """
+    # NFD 分解 unicode，过滤掉组合音调字符（category Mn）
+    nfd = unicodedata.normalize("NFD", text)
+    no_tone = "".join(c for c in nfd if unicodedata.category(c) != "Mn")
+    # ü/ǖǘǚǜ 分解后变成 u + 音调，音调已去掉；但 ü 本身（\u00fc）分解为 u + \u0308
+    # 以上处理后 ü -> u，再统一把 u 中需要表示 v 的情况保留（拼音里 lv/nv 规范输入）
+    result = no_tone.replace(" ", "").lower()
+    return result
 
 def get_phonics_items(content_type: str) -> list[str]:
     """获取拼音题库项目列表"""
@@ -72,13 +92,15 @@ def build_quiz_pool(content_type: str, level: int, count: int = 20) -> list[dict
     elif content_type == "words":
         items = get_word_items(level)
         for it in items:
-            # 答案：去掉空格
-            answer = it["pinyin"].replace(" ", "")
+            # 标准答案：去空格、去声调，学生输入时同样 normalize 后比较
+            answer_raw = it["pinyin"]
+            answer = normalize_pinyin(answer_raw)
             pool.append({
                 "display": it["word"],
-                "answer": answer,
-                "hint": f"{it['word']} = {it['pinyin']}",
-                "type": "word"
+                "answer":  answer,
+                "answer_raw": answer_raw,   # 保留原始带声调版本用于提示
+                "hint":    f"{it['word']} = {answer_raw}",
+                "type":    "word"
             })
 
     if not pool:

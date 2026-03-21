@@ -3,8 +3,9 @@ from src.utils.constants import *
 from src.utils.draw_utils import (draw_text, draw_button, draw_background_solid,
                                    draw_card, draw_star, draw_input_box,
                                    draw_progress_bar, draw_divider)
-from src.utils.data_loader import build_quiz_pool
+from src.utils.data_loader import build_quiz_pool, normalize_pinyin
 from src.utils.save_manager import save_record
+from src.utils.sound_manager import play as sfx
 
 
 class ChallengeScene:
@@ -24,6 +25,7 @@ class ChallengeScene:
         self.finished = False
         self.score = 0
         self.stars = 0
+        self.wrong_scroll = 0   # 错题回顾滚动偏移
         self.back_btn = pygame.Rect(20, 14, 88, 38)
 
     @property
@@ -33,12 +35,13 @@ class ChallengeScene:
     def _submit(self):
         if not self.input_text or self.current is None:
             return
-        typed = self.input_text.strip().lower()
-        answer = self.current["answer"].lower()
+        typed = normalize_pinyin(self.input_text.strip())
+        answer = self.current["answer"]   # 已经是 normalize 后的标准答案
         if typed == answer:
             self.correct += 1
             self.score += 10
             self.feedback = ("correct", f"正确！答案：{self.current['answer']}", 45)
+            sfx("correct")
         else:
             self.wrong_items.append({
                 "display": self.current["display"],
@@ -46,6 +49,7 @@ class ChallengeScene:
                 "typed":   typed,
             })
             self.feedback = ("wrong", f"正确答案：{self.current['answer']}", 55)
+            sfx("wrong")
         self.input_text = ""
         self.idx += 1
         if self.idx >= len(self.pool):
@@ -58,6 +62,8 @@ class ChallengeScene:
         self.stars = 3 if acc >= 0.9 else (2 if acc >= 0.7 else (1 if acc >= CHALLENGE_PASS_RATE else 0))
         save_record("challenge", self.game.selected_level,
                     self.game.selected_content, total, self.correct, self.score)
+        if self.stars > 0:
+            sfx("victory")
 
     def handle_event(self, event):
         if self.finished:
@@ -67,6 +73,11 @@ class ChallengeScene:
                     self.reset()
                 elif self._menu_btn().collidepoint(mx, my):
                     self.game.change_scene(SCENE_MODE_SELECT)
+            # 错题滚动：鼠标滚轮
+            if event.type == pygame.MOUSEWHEEL and self.wrong_items:
+                max_scroll = max(0, len(self.wrong_items) - 5)
+                self.wrong_scroll = max(0, min(max_scroll,
+                                               self.wrong_scroll - event.y))
             return
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -162,36 +173,51 @@ class ChallengeScene:
 
     def _draw_result(self, surface):
         draw_background_solid(surface, COLOR_BG_MAIN)
-        card = pygame.Rect(SCREEN_WIDTH // 2 - 300, 90, 600, 460)
+        has_wrong = bool(self.wrong_items)
+        card_h = 540 if has_wrong else 420
+        card = pygame.Rect(SCREEN_WIDTH // 2 - 310, 70, 620, card_h)
         draw_card(surface, card, bg=WHITE, radius=24, shadow=True)
 
         passed = self.stars > 0
         title_color = COLOR_SUCCESS if passed else COLOR_DANGER
         draw_text(surface, "恭喜通关！" if passed else "本次未通关",
-                  46, title_color, SCREEN_WIDTH // 2, 160, center=True, bold=True)
+                  44, title_color, SCREEN_WIDTH // 2, 138, center=True, bold=True)
 
-        # 星级
         for i in range(3):
-            draw_star(surface, SCREEN_WIDTH // 2 - 60 + i * 60, 228,
+            draw_star(surface, SCREEN_WIDTH // 2 - 60 + i * 60, 200,
                       filled=(i < self.stars), size=26)
 
         total = len(self.pool)
         acc = round(self.correct / total * 100, 1) if total else 0
-        draw_text(surface, f"{self.score}", 64, COLOR_PRIMARY,
-                  SCREEN_WIDTH // 2, 304, center=True, bold=True)
-        draw_text(surface, "分", 20, COLOR_TEXT_SUB,
-                  SCREEN_WIDTH // 2 + 54, 322)
+        draw_text(surface, f"{self.score}", 60, COLOR_PRIMARY,
+                  SCREEN_WIDTH // 2, 272, center=True, bold=True)
+        draw_text(surface, "分", 18, COLOR_TEXT_SUB,
+                  SCREEN_WIDTH // 2 + 50, 288)
         draw_text(surface, f"共 {total} 题  ·  正确 {self.correct} 题  ·  正确率 {acc}%",
-                  19, COLOR_TEXT_SUB, SCREEN_WIDTH // 2, 360, center=True)
+                  18, COLOR_TEXT_SUB, SCREEN_WIDTH // 2, 318, center=True)
 
-        if self.wrong_items:
-            draw_divider(surface, card.x + 40, 390, card.right - 40, (235, 238, 248))
-            draw_text(surface, "错题回顾", 17, COLOR_DANGER,
-                      SCREEN_WIDTH // 2, 412, center=True, bold=True)
-            for i, w in enumerate(self.wrong_items[:4]):
+        if has_wrong:
+            draw_divider(surface, card.x + 40, 346, card.right - 40, (235, 238, 248))
+            wrong_n = len(self.wrong_items)
+            draw_text(surface, f"错题回顾（共 {wrong_n} 题）",
+                      16, COLOR_DANGER, SCREEN_WIDTH // 2, 368, center=True, bold=True)
+
+            # 可视区域，最多显示5行，支持滚动
+            visible = 5
+            start = self.wrong_scroll
+            clip_rect = pygame.Rect(card.x + 10, 382, card.width - 20, visible * 26)
+            surface.set_clip(clip_rect)
+            for i, w in enumerate(self.wrong_items[start: start + visible]):
                 line = f"{w['display']}  →  正确：{w['answer']}    你答：{w['typed']}"
-                draw_text(surface, line, 16, COLOR_TEXT_SUB,
-                          SCREEN_WIDTH // 2, 438 + i * 24, center=True)
+                draw_text(surface, line, 15, COLOR_TEXT_SUB,
+                          SCREEN_WIDTH // 2, 392 + i * 26, center=True)
+            surface.set_clip(None)
+
+            # 滚动指示
+            if wrong_n > visible:
+                shown_end = min(start + visible, wrong_n)
+                draw_text(surface, f"↑↓ 滚动查看  {start+1}–{shown_end} / {wrong_n}",
+                          13, COLOR_TEXT_SUB, SCREEN_WIDTH // 2, 520, center=True)
 
         draw_button(surface, "再来一关", self._retry_btn(),
                     COLOR_PRIMARY, WHITE, font_size=22, radius=14)
@@ -199,7 +225,7 @@ class ChallengeScene:
                     (180, 188, 205), WHITE, font_size=22, radius=14)
 
     def _retry_btn(self):
-        return pygame.Rect(SCREEN_WIDTH // 2 - 290, 584, 256, 52)
+        return pygame.Rect(SCREEN_WIDTH // 2 - 290, 644, 256, 52)
 
     def _menu_btn(self):
-        return pygame.Rect(SCREEN_WIDTH // 2 + 34, 584, 256, 52)
+        return pygame.Rect(SCREEN_WIDTH // 2 + 34, 644, 256, 52)

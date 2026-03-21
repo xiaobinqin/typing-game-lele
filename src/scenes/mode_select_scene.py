@@ -2,6 +2,7 @@ import pygame
 from src.utils.constants import *
 from src.utils.draw_utils import (draw_text, draw_button, draw_background_solid,
                                    draw_card, draw_divider, draw_badge, draw_rounded_rect)
+from src.utils.save_manager import get_best_record
 
 
 MODES = [
@@ -141,30 +142,45 @@ class ModeSelectScene:
         draw_divider(surface, 80, 155, SCREEN_WIDTH - 80)
 
     def _draw_mode_cards(self, surface):
+        # 模式名 -> save_manager 中的 mode key
+        mode_keys = {
+            SCENE_FALLING:   "falling",
+            SCENE_CHALLENGE: "challenge",
+            SCENE_SPEED:     "speed",
+            SCENE_PRACTICE:  None,
+        }
         for i, c in enumerate(self.mode_cards):
             hover = (i == self.hover_mode)
             selected = (i == self.selected_mode)
             rect = c["rect"].inflate(0, hover * 6)
             color = c["color"]
 
-            # 选中态：卡片背景用该模式颜色的浅色调，并加粗边框
             if selected:
-                bg_color = tuple(min(255, v + 200) for v in color)  # 非常浅的底色
+                bg_color = tuple(min(255, v + 200) for v in color)
                 draw_card(surface, rect, bg=bg_color, radius=16, shadow=True)
-                # 选中高亮边框
                 pygame.draw.rect(surface, color, rect, width=3, border_radius=16)
             else:
                 draw_card(surface, rect, bg=WHITE, radius=16, shadow=True)
 
-            # 左侧色条
             bar = pygame.Rect(rect.x, rect.y, 6, rect.height)
             pygame.draw.rect(surface, color, bar, border_radius=16)
 
             draw_text(surface, c["name"], 24, color,
-                      rect.x + 26, rect.y + 36, bold=True)
-            draw_text(surface, c["desc"], 16, COLOR_TEXT_SUB,
-                      rect.x + 26, rect.y + 72)
-            # 底部提示：hover 或 selected 时用主题色
+                      rect.x + 26, rect.y + 30, bold=True)
+            draw_text(surface, c["desc"], 15, COLOR_TEXT_SUB,
+                      rect.x + 26, rect.y + 64)
+
+            # 历史最佳成绩
+            mk = mode_keys.get(c["scene"])
+            if mk:
+                best = get_best_record(mk,
+                                       level=self.game.selected_level,
+                                       content=CONTENT_ITEMS[self.selected_content][0])
+                if best:
+                    best_txt = f"最高 {best['score']} 分"
+                    draw_text(surface, best_txt, 13, color,
+                              rect.x + 26, rect.y + 92)
+
             hint_color = color if (hover or selected) else (200, 205, 220)
             hint_text = "上次选择 ✓" if (selected and not hover) else "点击进入 →"
             draw_text(surface, hint_text, 13, hint_color,

@@ -3,7 +3,8 @@ import random
 from src.utils.constants import *
 from src.utils.draw_utils import (draw_text, draw_button, draw_background_solid,
                                    draw_card, draw_input_box, draw_divider)
-from src.utils.data_loader import build_quiz_pool
+from src.utils.data_loader import build_quiz_pool, normalize_pinyin
+from src.utils.sound_manager import play as sfx
 
 
 class PracticeScene:
@@ -31,15 +32,17 @@ class PracticeScene:
     def _submit(self):
         if not self.input_text or self.current is None:
             return
-        typed = self.input_text.strip().lower()
-        answer = self.current["answer"].lower()
+        typed = normalize_pinyin(self.input_text.strip())
+        answer = self.current["answer"]
         self.total += 1
         if typed == answer:
             self.correct += 1
             self.feedback = ("correct", f"正确！  答案：{self.current['answer']}", 90)
+            sfx("correct")
         else:
             self.feedback = ("wrong",
                              f"正确答案：{self.current['answer']}（你输入：{typed}）", 110)
+            sfx("wrong")
         self.input_text = ""
         self.show_hint = False
 

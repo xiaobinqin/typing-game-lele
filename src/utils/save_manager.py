@@ -2,6 +2,7 @@ import json
 import os
 import sys
 from datetime import datetime
+from typing import Optional
 
 
 def _get_saves_dir():
@@ -53,6 +54,19 @@ def save_record(mode: str, level: int, content_type: str,
 
 def get_records():
     return _load_json(_RECORD_FILE, [])
+
+
+def get_best_record(mode: str, level: int = None, content: str = None) -> Optional[dict]:
+    """返回指定模式（可选年级/内容）的历史最高分记录"""
+    records = get_records()
+    filtered = [r for r in records if r.get("mode") == mode]
+    if level is not None:
+        filtered = [r for r in filtered if r.get("level") == level]
+    if content is not None:
+        filtered = [r for r in filtered if r.get("content_type") == content]
+    if not filtered:
+        return None
+    return max(filtered, key=lambda r: r.get("score", 0))
 
 # ---------- 排行榜 ----------
 

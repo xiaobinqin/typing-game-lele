@@ -3,8 +3,9 @@ from src.utils.constants import *
 from src.utils.draw_utils import (draw_text, draw_button, draw_background_solid,
                                    draw_card, draw_input_box, draw_progress_bar,
                                    draw_divider)
-from src.utils.data_loader import build_quiz_pool
+from src.utils.data_loader import build_quiz_pool, normalize_pinyin
 from src.utils.save_manager import save_record, save_leaderboard, get_leaderboard
+from src.utils.sound_manager import play as sfx
 
 
 class SpeedScene:
@@ -27,6 +28,7 @@ class SpeedScene:
         self.finished = False
         self.name_input = ""
         self.name_saved = False
+        self.name_empty_hint = False   # 空昵称提示标志
         self.back_btn = pygame.Rect(20, 14, 88, 38)
 
     @property
@@ -36,8 +38,8 @@ class SpeedScene:
     def _submit(self):
         if not self.input_text or self.current is None:
             return
-        typed = self.input_text.strip().lower()
-        answer = self.current["answer"].lower()
+        typed = normalize_pinyin(self.input_text.strip())
+        answer = self.current["answer"]
         self.total += 1
         if typed == answer:
             self.combo += 1
@@ -48,9 +50,11 @@ class SpeedScene:
             self.correct += 1
             combo_str = f"  连击 x{self.combo}" if self.combo > 1 else ""
             self.feedback = ("correct", f"+{gained}{combo_str}", 32)
+            sfx("correct")
         else:
             self.combo = 0
             self.feedback = ("wrong", f"正确：{self.current['answer']}", 40)
+            sfx("wrong")
         self.input_text = ""
         self.idx += 1
         if self.idx >= len(self.pool):
@@ -64,12 +68,17 @@ class SpeedScene:
                         if self.name_input.strip():
                             save_leaderboard(self.name_input.strip(), self.score)
                             self.name_saved = True
+                            self.name_empty_hint = False
+                        else:
+                            self.name_empty_hint = True   # 空昵称：显示提示
                     elif event.key == pygame.K_BACKSPACE:
                         self.name_input = self.name_input[:-1]
+                        self.name_empty_hint = False
                     else:
                         ch = event.unicode
                         if ch and len(self.name_input) < 8:
                             self.name_input += ch
+                            self.name_empty_hint = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = event.pos
                 if self._retry_btn().collidepoint(mx, my):
@@ -198,6 +207,9 @@ class SpeedScene:
                       18, COLOR_TEXT_SUB, SCREEN_WIDTH // 2, 366, center=True)
             nr = pygame.Rect(SCREEN_WIDTH // 2 - 170, 386, 340, 50)
             draw_input_box(surface, self.name_input, nr, font_size=26)
+            if self.name_empty_hint:
+                draw_text(surface, "昵称不能为空，请输入后再确认",
+                          15, COLOR_DANGER, SCREEN_WIDTH // 2, 448, center=True)
         else:
             draw_text(surface, "已保存到排行榜！", 20, COLOR_SUCCESS,
                       SCREEN_WIDTH // 2, 380, center=True, bold=True)

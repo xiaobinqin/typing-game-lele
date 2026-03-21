@@ -4,8 +4,9 @@ from src.utils.constants import *
 from src.utils.draw_utils import (draw_text, draw_button, draw_background_solid,
                                    draw_card, draw_heart, draw_input_box,
                                    draw_divider, draw_shadow_rect)
-from src.utils.data_loader import build_quiz_pool
+from src.utils.data_loader import build_quiz_pool, normalize_pinyin
 from src.utils.save_manager import save_record
+from src.utils.sound_manager import play as sfx
 
 
 MAX_HP = 5
@@ -43,15 +44,36 @@ class FallingItem:
         self.x = col_x
         card_w, card_h = 130, 68
 
-        bg     = COLOR_SUCCESS if self.matched else WHITE
-        border = (30, 160, 80) if self.matched else COLOR_PRIMARY
+        # 危险预警：距底部 220px 内变色闪烁
+        danger_threshold = self.screen_h - 330
+        warning_threshold = self.screen_h - 220
+        is_danger  = self.y > warning_threshold
+        is_warning = self.y > danger_threshold and not is_danger
+
+        if self.matched:
+            bg, border = COLOR_SUCCESS, (30, 160, 80)
+        elif is_danger:
+            # 红色闪烁：偶数帧深红、奇数帧亮红
+            pulse = (pygame.time.get_ticks() // 180) % 2
+            bg     = (255, 80, 80) if pulse else (220, 40, 40)
+            border = (180, 0, 0)
+        elif is_warning:
+            bg, border = (255, 230, 180), (255, 140, 0)
+        else:
+            bg, border = WHITE, COLOR_PRIMARY
 
         rect = pygame.Rect(self.x - card_w // 2, int(self.y), card_w, card_h)
         draw_shadow_rect(surface, rect, radius=14, shadow_offset=4, shadow_alpha=30)
         pygame.draw.rect(surface, bg, rect, border_radius=14)
         pygame.draw.rect(surface, border, rect, 2, border_radius=14)
 
-        text_color = WHITE if self.matched else COLOR_TEXT_MAIN
+        if is_danger:
+            text_color = WHITE
+        elif self.matched:
+            text_color = WHITE
+        else:
+            text_color = COLOR_TEXT_MAIN
+
         fs = 32 if len(self.display) <= 2 else 24
         font = get_font(fs, bold=True)
         surf = font.render(self.display, True, text_color)
@@ -264,28 +286,36 @@ class FallingScene:
     def _submit(self):
         if not self.input_text:
             return
-        typed = self.input_text.strip().lower()
-        matched = False
-        for it in self.items:
-            if it.matched:
-                continue
-            if typed == it.answer.lower():
+        typed = normalize_pinyin(self.input_text.strip())
+        # 找出所有拼音匹配且未消除的字
+        hit_items = [it for it in self.items
+                     if not it.matched and normalize_pinyin(it.answer) == typed]
+        if hit_items:
+            multi = len(hit_items) > 1
+            for it in hit_items:
                 it.matched = True
                 it.flash = 22
-                self.score += 10
-                self.correct += 1
-                self.total_answered += 1
-                self.feedback = ("correct", "正确！+10", 55)
-                matched = True
-                if self.correct % FALLING_SPEED_STEP == 0:
-                    self.fall_speed = max(FALLING_MIN_SPEED, self.fall_speed - 2)
-                    for x in self.items:
-                        x.speed = self.fall_speed
-                break
-        if not matched:
+            base_score = 10 * len(hit_items)
+            bonus = 5 * (len(hit_items) - 1)
+            gained = base_score + bonus
+            self.score += gained
+            self.correct += len(hit_items)
+            self.total_answered += 1
+            if multi:
+                self.feedback = ("correct", f"一击消{len(hit_items)}个！+{gained}", 65)
+                sfx("multi")
+            else:
+                self.feedback = ("correct", f"正确！+{base_score}", 45)
+                sfx("correct")
+            if self.correct % FALLING_SPEED_STEP == 0:
+                self.fall_speed = max(FALLING_MIN_SPEED, self.fall_speed - 2)
+                for x in self.items:
+                    x.speed = self.fall_speed
+        else:
             self.total_answered += 1
             hint = next((it.hint for it in self.items if not it.matched), "")
             self.feedback = ("wrong", f"答错了  {hint}", 75)
+            sfx("wrong")
         self.input_text = ""
 
     # ── 更新 ──────────────────────────────────────────────────
@@ -313,6 +343,7 @@ class FallingScene:
         for it in [x for x in self.items if x.is_landed() and not x.matched]:
             self.hp -= 1
             self.feedback = ("wrong", f"漏掉了！{it.hint}", 75)
+            sfx("land")
         self.items = [it for it in self.items
                       if not it.is_landed() and not (it.matched and it.flash == 0)]
 
