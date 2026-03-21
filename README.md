@@ -16,6 +16,7 @@
 | 🏆 本地排行榜 | 竞速模式 Top 10，支持昵称录入 |
 | 💾 学习记录 | 自动保存每次游戏结果，历史可查 |
 | 🔄 状态记忆 | 返回选择页时自动恢复上次的年级、内容、模式选择 |
+| 🔒 单例保护 | 同一时刻只允许运行一个游戏实例，重复启动自动聚焦已有窗口 |
 
 ---
 
@@ -108,7 +109,9 @@ python main.py
         ├── font_manager.py
         ├── data_loader.py
         ├── save_manager.py
-        └── draw_utils.py
+        ├── draw_utils.py
+        ├── sound_manager.py
+        └── single_instance.py
 ```
 
 ---
@@ -126,6 +129,7 @@ python main.py
 ## 依赖
 
 - [pygame](https://www.pygame.org/) >= 2.5.0
+- [numpy](https://numpy.org/) >= 1.24.0
 - Python >= 3.9
 
 ---

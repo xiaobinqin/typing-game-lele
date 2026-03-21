@@ -13,7 +13,7 @@ a = Analysis(
         # 捆绑系统中文字体，供 font_manager 在打包环境下使用
         ('/System/Library/Fonts/STHeiti Light.ttc', 'system_fonts'),
     ],
-    hiddenimports=['pygame', 'pygame.font', 'pygame.mixer'],
+    hiddenimports=['pygame', 'pygame.font', 'pygame.mixer', 'numpy', 'numpy.core', 'numpy.core._multiarray_umath'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -60,8 +60,8 @@ app = BUNDLE(
     info_plist={
         'CFBundleDisplayName': '打字大挑战-乐乐',
         'CFBundleName':        '打字大挑战-乐乐',
-        'CFBundleVersion':     '1.0.0',
-        'CFBundleShortVersionString': '1.0.0',
+        'CFBundleVersion':     '1.1.0',
+        'CFBundleShortVersionString': '1.1.0',
         'NSHighResolutionCapable': True,
         'LSMinimumSystemVersion': '10.13.0',
     },
