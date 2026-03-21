@@ -59,16 +59,20 @@ class ModeSelectScene:
     def _build_content_btns(self):
         """
         3组，每组内2个按钮并排，组间留更大间距。
-        返回 list of {"rect", "content", "name", "group_idx", "btn_idx"}
+        组框高度 = 标题区(24px) + 间距(8px) + 按钮高(40px) + 内边距(12px)*2 = 96px
+        按钮 y = 框顶 + 标题区 + 间距 + 上内边距
         """
-        group_inner_w = 240   # 每组两按钮总宽
         btn_w, btn_h = 110, 40
-        btn_gap = 10          # 组内间距
-        group_gap = 28        # 组间间距
+        btn_gap = 10           # 组内按钮间距
+        group_inner_w = 240    # 每组宽（含两按钮 + 间距）
+        group_gap = 28         # 组间间距
         total_groups = len(CONTENT_GROUPS)
         total_w = total_groups * group_inner_w + (total_groups - 1) * group_gap
         sx = (SCREEN_WIDTH - total_w) // 2
-        y = 456
+
+        # 框顶 y（在"练习内容"标题下方留空）
+        frame_top = 442
+        btn_y = frame_top + 34   # 标题区26px + 上内边距8px
 
         btns = []
         flat_idx = 0
@@ -77,7 +81,7 @@ class ModeSelectScene:
             for bi, (ct, name) in enumerate(items):
                 x = gx + bi * (btn_w + btn_gap)
                 btns.append({
-                    "rect": pygame.Rect(x, y, btn_w, btn_h),
+                    "rect": pygame.Rect(x, btn_y, btn_w, btn_h),
                     "content": ct,
                     "name": name,
                     "flat_idx": flat_idx,
@@ -138,6 +142,7 @@ class ModeSelectScene:
             color = c["color"]
 
             draw_card(surface, rect, bg=WHITE, radius=16, shadow=True)
+            # 左侧色条
             bar = pygame.Rect(rect.x, rect.y, 6, rect.height)
             pygame.draw.rect(surface, color, bar, border_radius=16)
 
@@ -145,12 +150,13 @@ class ModeSelectScene:
                       rect.x + 26, rect.y + 36, bold=True)
             draw_text(surface, c["desc"], 16, COLOR_TEXT_SUB,
                       rect.x + 26, rect.y + 72)
-            draw_text(surface, "点击进入  →", 14,
-                      color if hover else (200, 205, 220),
-                      rect.right - 16, rect.bottom - 22)
+            # 底部提示：右对齐居中在卡片内
+            hint_color = color if hover else (200, 205, 220)
+            draw_text(surface, "点击进入 →", 13, hint_color,
+                      rect.centerx, rect.bottom - 18, center=True)
 
     def _draw_content_groups(self, surface):
-        """绘制3组练习内容选择按钮，每组带标题"""
+        """绘制3组练习内容选择按钮：每组有独立背景框，标题在框顶，按钮在框内"""
         draw_text(surface, "练习内容", 18, COLOR_TEXT_MAIN,
                   SCREEN_WIDTH // 2, 418, center=True, bold=True)
 
@@ -158,21 +164,24 @@ class ModeSelectScene:
         group_gap = 28
         total_w = len(CONTENT_GROUPS) * group_inner_w + (len(CONTENT_GROUPS) - 1) * group_gap
         sx = (SCREEN_WIDTH - total_w) // 2
-        label_y = 442
 
-        # 绘制每组背景框 + 组标题
+        frame_top = 442
+        frame_h = 96   # 标题26 + 内边距8 + 按钮40 + 下内边距22
+
+        # 先画每组背景框 + 标题（在按钮下层）
         for gi, (group_title, _) in enumerate(CONTENT_GROUPS):
             gx = sx + gi * (group_inner_w + group_gap)
-            bg_rect = pygame.Rect(gx - 8, label_y - 2, group_inner_w + 16, 62)
+            bg_rect = pygame.Rect(gx - 8, frame_top, group_inner_w + 16, frame_h)
             pygame.draw.rect(surface, (235, 239, 250), bg_rect, border_radius=12)
+            # 组标题居中显示在框顶部区域
             draw_text(surface, group_title, 13, COLOR_TEXT_SUB,
-                      gx + group_inner_w // 2, label_y + 10, center=True)
+                      gx + group_inner_w // 2, frame_top + 14, center=True)
 
-        # 绘制按钮
+        # 再画按钮（在背景框上层，不被覆盖）
         for b in self.content_btns:
             sel = (b["flat_idx"] == self.selected_content)
             hover = (b["flat_idx"] == self.hover_content)
-            bg = COLOR_PRIMARY if sel else (WHITE if hover else (248, 250, 254))
+            bg = COLOR_PRIMARY if sel else (WHITE if hover else (255, 255, 255))
             tc = WHITE if sel else (COLOR_TEXT_MAIN if hover else COLOR_TEXT_SUB)
             border = COLOR_PRIMARY if not sel and hover else None
             draw_button(surface, b["name"], b["rect"], bg, tc,
